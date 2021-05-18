@@ -1,11 +1,13 @@
-import React, { useRef, useState } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import { Form, Button, Card, Alert } from 'react-bootstrap'
 import { Link, useHistory } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { auth, db } from '../firebase';
 import InputMask from "react-input-mask";
-import { db } from '../firebase';
 
 export default function UpdateProfile () {
+  const [user, setUser] = useState({})
+
   const nomeRef = useRef()
   const emailRef = useRef()
   const passwordRef = useRef()
@@ -13,10 +15,30 @@ export default function UpdateProfile () {
   const telefoneRef = useRef()
   const latitudeRef = useRef()
   const longitudeRef = useRef()
-  const { currentUser, updatePassword, updateEmail } = useAuth()
+  const { currentUser, updatePassword, updateEmail } = useAuth()  
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const history = useHistory()
+  const [mask, setMask] = useState('');
+
+  useEffect(() => {
+    setMask(user.telefone || '');
+  }, [user.telefone]);
+
+  useEffect(() => {
+    async function unsubscribe () {
+      await auth.onAuthStateChanged(async (response) => {
+        if (response) {
+          const fbUser = await db.collection('usuarios').doc(response.uid).get()
+          setUser(fbUser.data());
+        } else {
+          setUser(false);
+        }
+      });
+    }
+    // Cleanup subscription on unmount
+    unsubscribe()
+  }, []);
 
   function update (user) {
     db.collection("usuarios")
@@ -74,7 +96,7 @@ export default function UpdateProfile () {
                   <Form.Control
                     type="nome"
                     ref={nomeRef}
-                    defaultValue={currentUser.nome}
+                    defaultValue={user.nome}
                     required
                   />
                 </Form.Group>
@@ -108,6 +130,7 @@ export default function UpdateProfile () {
                     className="form-control"
                     mask="(99) 99999-9999"
                     ref={telefoneRef}
+                    value={mask}
                   />
                 </Form.Group>
                 <Form.Group id="latitude">
@@ -115,6 +138,7 @@ export default function UpdateProfile () {
                   <Form.Control
                     type="latitude"
                     ref={latitudeRef}
+                    defaultValue={user.latitude}
                   />
                 </Form.Group>
                 <Form.Group id="longitude">
@@ -122,6 +146,7 @@ export default function UpdateProfile () {
                   <Form.Control
                     type="longitude"
                     ref={longitudeRef}
+                    defaultValue={user.longitude}
                   />
                 </Form.Group>
                 </Form.Group>

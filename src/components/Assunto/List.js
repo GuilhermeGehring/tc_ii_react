@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Table, Button, Alert, Modal } from "react-bootstrap";
+import { useHistory } from "react-router";
+import { Link } from "react-router-dom";
 import { db } from "../../firebase";
 
 export default function Assunto() {
@@ -38,6 +40,8 @@ export default function Assunto() {
       });
   }
 
+  const { pathname } = useHistory().location;
+
   return (
     <>
       <Alert show={successAlert} variant="success">Exclusão realizada com sucesso</Alert>
@@ -56,7 +60,6 @@ export default function Assunto() {
       <Table striped bordered hover responsive>
         <thead>
           <tr>
-            <th>#</th>
             <th>Nome</th>
             <th>Descrição</th>
             <th>Ações</th>
@@ -66,7 +69,6 @@ export default function Assunto() {
           {assuntos.map((assunto, index) => {
             return (
               <tr key={`${assunto}${index}`}>
-                <td>{assunto.id}</td>
                 <td>{assunto.titulo}</td>
                 <td>{assunto.descricao}</td>
                 <td>
@@ -84,8 +86,13 @@ export default function Assunto() {
             );
           })}
         </tbody>
-      </Table>
-      <Button variant="success">Adicionar</Button>
+      </Table>      
+      <Link
+        to={`${pathname}/add`}
+        className="btn btn-success"
+      >
+        Adicionar
+      </Link>
       {/* <ModalForm buttonLabel="Add Item" addItemToState={this.addItemToState}/> */}
     </>
   );
